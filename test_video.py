@@ -35,8 +35,10 @@ parser = argparse.ArgumentParser(description="test TRN on a single video")
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument('--video_file', type=str, default=None)
 group.add_argument('--frame_folder', type=str, default=None)
+parser.add_argument('--start_frame', type=int, default=0)
 parser.add_argument('--rendered_output', type=str, default=None)
 parser.add_argument('--num_segments', type=int, default=16)
+parser.add_argument('--subsample_rate', type=int, default=1)
 parser.add_argument('--arch', type=str, default='resnet3d50', choices=['resnet50', 'resnet3d50'])
 args = parser.parse_args()
 
@@ -58,7 +60,7 @@ if args.frame_folder is not None:
     frames = load_frames(frame_paths)
 else:
     print('Extracting frames using ffmpeg...')
-    frames = extract_frames(args.video_file, args.num_segments)
+    frames = extract_frames(args.video_file, args.num_segments, args.start_frame, args.subsample_rate)
 
 
 # Prepare input tensor

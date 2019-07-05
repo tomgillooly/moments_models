@@ -9,7 +9,7 @@ from PIL import Image
 import cv2
 
 
-def extract_frames(video_file, num_frames=8):
+def extract_frames(video_file, num_frames=8, start_frame=0, subsample_rate=1):
     """Return a list of PIL image frames uniformly sampled from an mp4 video."""
     try:
         os.makedirs(os.path.join(os.getcwd(), 'frames'))
@@ -19,20 +19,22 @@ def extract_frames(video_file, num_frames=8):
                               stderr=subprocess.PIPE).communicate()
     # Search and parse 'Duration: 00:05:24.13,' from ffmpeg stderr.
     re_duration = re.compile(r'Duration: (.*?)\.')
+    re_fps = re.compile(r'(\d+) fps')
     duration = re_duration.search(str(output[1])).groups()[0]
+    fps = int(re_fps.search(str(output[1])).groups()[0])
 
     seconds = functools.reduce(lambda x, y: x * 60 + y,
                                map(int, duration.split(':')))
     rate = num_frames / float(seconds)
 
     output = subprocess.Popen(['ffmpeg', '-i', video_file,
-                               '-vf', 'fps={}'.format(rate),
-                               '-vframes', str(num_frames),
+                               '-vf',
+                               'fps={},select=between(n\,{}\,{})'.format(fps, start_frame, start_frame+num_frames-1),
                                '-loglevel', 'panic',
                                'frames/%d.jpg']).communicate()
     frame_paths = sorted([os.path.join('frames', frame)
                           for frame in os.listdir('frames')])
-    frames = load_frames(frame_paths, num_frames=num_frames)
+    frames = load_frames(frame_paths, num_frames=num_frames/subsample_rate)
     subprocess.call(['rm', '-rf', 'frames'])
     return frames
 
