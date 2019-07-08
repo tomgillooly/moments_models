@@ -252,5 +252,6 @@ def load_transform():
 
 def load_categories():
     """Load categories."""
-    with open('category_momentsv1.txt') as f:
+    dir = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dir, 'category_momentsv1.txt')) as f:
         return [line.rstrip() for line in f.readlines()]
